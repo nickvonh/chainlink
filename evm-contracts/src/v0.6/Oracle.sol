@@ -190,7 +190,6 @@ contract Oracle is ChainlinkRequestInterface, OracleInterface, Ownable, LinkToke
    */
   function setConsumerPermission(address _consumer, bool _allowed)
     external
-    override
     onlyOwner()
   {
     authorizedConsumers[_consumer] = _allowed;
