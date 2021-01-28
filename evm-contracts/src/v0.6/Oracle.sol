@@ -25,6 +25,7 @@ contract Oracle is ChainlinkRequestInterface, OracleInterface, Ownable, LinkToke
   LinkTokenInterface internal LinkToken;
   mapping(bytes32 => bytes32) private commitments;
   mapping(address => bool) private authorizedNodes;
+  mapping(address => bool) private authorizedConsumers;
   uint256 private withdrawableTokens = ONE_FOR_CONSISTENT_GAS_COST;
 
   event OracleRequest(
@@ -181,6 +182,19 @@ contract Oracle is ChainlinkRequestInterface, OracleInterface, Ownable, LinkToke
   {
     authorizedNodes[_node] = _allowed;
   }
+  
+    /**
+   * @notice Sets the request permission for a given consumer. Use `true` to allow, `false` to disallow.
+   * @param _consumer The address of the Consumer Contract
+   * @param _allowed Bool value to determine if the node can fulfill requests
+   */
+  function setConsumerPermission(address _consumer, bool _allowed)
+    external
+    override
+    onlyOwner()
+  {
+    authorizedConsumers[_consumer] = _allowed;
+  }
 
   /**
    * @notice Allows the node operator to withdraw earned LINK to a given address
@@ -288,6 +302,14 @@ contract Oracle is ChainlinkRequestInterface, OracleInterface, Ownable, LinkToke
    */
   modifier onlyAuthorizedNode() {
     require(authorizedNodes[msg.sender] || msg.sender == owner(), "Not an authorized node to fulfill requests");
+    _;
+  }
+  
+    /**
+   * @dev Reverts if `msg.sender` is not authorized to make requests
+   */
+  modifier onlyAuthorizedConsumer() {
+    require(authorizedConsumers[msg.sender] || msg.sender == owner(), "Not an authorized consumer to make requests");
     _;
   }
 
